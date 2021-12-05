@@ -5,7 +5,9 @@ import { Switch,  Route } from 'react-router-dom';
 import ShopPage from './pages/shop/shop.component';
 import Header from './components/header/header.component';
 import SignInAndSignUpPage from './pages/sign-in-and-sign-out/sign-in-and-sign-out.component';
-import {auth} from './firebase/firebase.utils';
+import {auth, createUserProfileDocument} from './firebase/firebase.utils';
+import { connect } from 'react-redux';
+import { setCurrentUser } from './redux/user/user.actions';
 
 const HatsPage = () => (
   <div>
@@ -17,20 +19,40 @@ const HatsPage = () => (
 
 class App extends React.Component {
 
-  constructor() {
-    super();
-
-    this.state = {
-      currentUser:null
-    }
-  }
+ 
   unsubscribeFromAuth = null;
 
   componentDidMount() {
-  this.unsubscribeFromAuth =  auth.onAuthStateChanged(user => {
-     this.setState({currentUser:user});
-     console.log(user);
+  const {setCurrentUser} = this.props
+  
+  this.unsubscribeFromAuth =  auth.onAuthStateChanged( async userAuth => {
+
+    if (userAuth) {
+      console.log(userAuth)
+      const userRef = await createUserProfileDocument(userAuth);
+      console.log(userRef)
+      userRef.onSnapshot(snapshot=> {
+        setCurrentUser({
+          id: snapshot.id,
+          ...snapshot.data()
+        })
+        // this.setState({
+        //   currentUser:{
+        //     id: snapshot.id,
+        //     ...snapshot.data()
+        //   }
+        // }, () => {
+        //   console.log(this.state);
+        // });
+      });
+     
+
+
+    }
+    setCurrentUser(userAuth);
+    
    })
+  
   }
 
   componentWillUnmount() {
@@ -40,7 +62,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="App">
-      <Header currentUser={this.state.currentUser} />
+      <Header />
       <Switch>
       <Route path="/signin" exact  component={SignInAndSignUpPage} />
       <Route path='/' exact  component={Homepage} />
@@ -55,4 +77,8 @@ class App extends React.Component {
  
 }
 
-export default App;
+const mapDispatchToProps = dispatch => ({
+  setCurrentUser : user => dispatch(setCurrentUser(user))
+})
+
+export default connect(null, mapDispatchToProps)(App);

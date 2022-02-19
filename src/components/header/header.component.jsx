@@ -9,7 +9,7 @@ import CartDropdown from '../cart-dropdown/cart-dropdown.component';
 import './header.styles.scss';
 
 
-const Header = ({ currentUser, hidden }) => (
+const Header = ({ currentUser, hidden, cartItems }) => (
     <div className="header">
         <Link className='logo-container' to="/">
             <Logo />
@@ -26,7 +26,7 @@ const Header = ({ currentUser, hidden }) => (
                 <div className="option" onClick={() => auth.signOut()}>SIGNOUT</div> :
                 <Link className="option" to="/signin">SIGN IN</Link>
             }
-             <CartIcon />
+             <CartIcon cartItems={cartItems} />
         </div>
         {hidden ? null : <CartDropdown />}
         
@@ -34,9 +34,10 @@ const Header = ({ currentUser, hidden }) => (
     
 )
 
-const mapStateToProps = ({user:{currentUser}, cart:{hidden}}) => ({
+const mapStateToProps = ({user:{currentUser}, cart:{hidden, cartItems}}) => ({
     currentUser: currentUser,
-    hidden:hidden
+    hidden:hidden,
+    cartItems: cartItems
 
 })
 
